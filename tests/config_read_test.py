@@ -3,7 +3,7 @@ import typing
 import random
 import os
 import yaml
-import m2.runAudioExperiment as ra
+import m2.runAudioExperiment.experiment_config as cfg
 
 TEST_CONFIG_FN = 'test_config.txt'
 
@@ -16,7 +16,7 @@ def config_fs(fs):
 
 
 def test_config_read(config_fs):
-    config = ra.ExperimentRunConfig(TEST_CONFIG_FN)
+    config = cfg.ExperimentRunConfig(TEST_CONFIG_FN)
     assert config.black_duration == 600
     assert config.c1_duration == 300
     assert config.c1_color == "#afd444"
@@ -37,7 +37,7 @@ def test_config_read_interval(config_fs):
     config_fs.create_file(n_config_fn, 
                           contents=yaml.dump(config, Dumper=yaml.Dumper))
 
-    config = ra.ExperimentRunConfig(n_config_fn)
+    config = cfg.ExperimentRunConfig(n_config_fn)
     assert config.black_duration == 600
     assert config.c1_duration == (300, 500)
     assert config.c1_color == "#afd444"
@@ -50,7 +50,7 @@ def test_config_read_interval(config_fs):
 
 @pytest.mark.parametrize('skips_n', range(1, 4))
 def test_missing_keys(config_fs, skips_n):
-    skips = random.choices(list(ra.ExperimentRunConfig.config_keys_set), 
+    skips = random.choices(list(cfg.ExperimentRunConfig.config_keys_set), 
                            k=skips_n)
     with open(TEST_CONFIG_FN, 'r') as f:
         config = yaml.load(f, Loader=yaml.Loader)
@@ -61,8 +61,8 @@ def test_missing_keys(config_fs, skips_n):
                                                       Dumper=yaml.Dumper))
 
     try:
-        ra.ExperimentRunConfig(n_config_path)
-    except ra.IncompleteExperimentConfig as e:
+        cfg.ExperimentRunConfig(n_config_path)
+    except cfg.IncompleteExperimentConfig as e:
         assert e.filename == n_config_path
         assert e.missing_keys == set(skips)
         return
@@ -82,8 +82,8 @@ def test_wrong_type(config_fs):
     config_fs.create_file(n_config_fn, 
                           contents=yaml.dump(n_config, Dumper=yaml.Dumper))
     try:
-        ra.ExperimentRunConfig(n_config_fn)
-    except ra.InvalidConfigType as e:
+        cfg.ExperimentRunConfig(n_config_fn)
+    except cfg.InvalidConfigType as e:
         assert e.key == 'black_duration'
         assert e.type == int
     os.remove(n_config_fn)
@@ -94,8 +94,8 @@ def test_wrong_type(config_fs):
     config_fs.create_file(n_config_fn, 
                           contents=yaml.dump(n_config, Dumper=yaml.Dumper))
     try:
-        ra.ExperimentRunConfig(n_config_fn)
-    except ra.InvalidConfigType as e:
+        cfg.ExperimentRunConfig(n_config_fn)
+    except cfg.InvalidConfigType as e:
         assert e.key == 'c1_color'
         assert e.type == str
     os.remove(n_config_fn)
@@ -106,8 +106,8 @@ def test_wrong_type(config_fs):
     config_fs.create_file(n_config_fn, 
                           contents=yaml.dump(n_config, Dumper=yaml.Dumper))
     try:
-        ra.ExperimentRunConfig(n_config_fn)
-    except ra.InvalidConfigType as e:
+        cfg.ExperimentRunConfig(n_config_fn)
+    except cfg.InvalidConfigType as e:
         assert e.key == 'c1_duration'
         assert e.type == typing.Union[int, typing.Tuple[int, int]]
     os.remove(n_config_fn)
