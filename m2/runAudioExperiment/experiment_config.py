@@ -1,8 +1,10 @@
 import yaml
 import typing
 
+class ExperimentConfigError(ValueError):
+    pass
 
-class IncompleteExperimentConfig(ValueError):
+class IncompleteExperimentConfig(ExperimentRunConfig):
     
     def __init__(self, missing_keys, filename):
         self.missing_keys = missing_keys
@@ -11,7 +13,7 @@ class IncompleteExperimentConfig(ValueError):
                          'following keys: {}'.format(filename, missing_keys))
 
 
-class InvalidConfigType(ValueError):
+class InvalidConfigType(ExperimentRunConfig):
 
     def __init__(self, key, type, filename):
         self.key = key
@@ -50,8 +52,11 @@ class ExperimentRunConfig:
     config_keys_set = set(config_keys.keys())
 
     def __init__(self, filename):
-        with open(filename, 'r') as f:
-            config = yaml.load(f, Loader=yaml.Loader)
+        if isinstance(filename, str):
+            with open(filename, 'r') as f:
+                config = yaml.load(f, Loader=yaml.Loader)
+        elif isinstance(filename, file):
+            config = yaml.load(filename, Loader=yaml.Loader)
     
         if not self.config_keys_set.issubset(set(config.keys())):
             raise IncompleteExperimentConfig(
