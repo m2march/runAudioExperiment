@@ -18,8 +18,8 @@ setup(name='runAudioExperiment',
       },
       install_requires=[
           'pydub',
-          'python-gflags',
-          'python-magic',
           'numpy',
+          'sounddevice',
+          'fuzzywuzzy'
       ],
       )
