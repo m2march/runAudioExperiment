@@ -8,7 +8,7 @@ import sounddevice
 
 SOUND_DEVICE_THRESHOLD = 80
 BEST_DEVICE_MATCH_THRESHOLD = 10
-
+EXPERIMENT_SETTINGS_FILENAME = 'experiment_settings.json'
 
 LOGGER = logging.getLogger()
 
@@ -159,3 +159,8 @@ class ExperimentRunConfig:
         #     raise MatchingNotDistinctEnough(best, close_distances)
 
         return best['info'], best['id']
+
+    def save(self):
+        out_path = os.path.join(self.output_dir, EXPERIMENT_SETTINGS_FILENAME)
+        with open(out_path, 'w') as f:
+            json.dump(self.__dict__, f)

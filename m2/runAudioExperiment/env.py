@@ -10,3 +10,12 @@ class Environment:
     def __init__(self, expermient_config):
         self.clock = core.Clock()
         self.window = visual.Window(fullscr=True)
+        self.c1_rect = self.create_full_rect(experiment_config.c1_color)
+        self.c2_rect = self.create_full_rect(experiment_config.c2_color)
+        self.black_rect = self.create_full_rect('black')
+        sounddevice.default.device = experiment_config.device_id
+
+
+    def create_full_rect(self, color):
+        return visual.Rect(self.window, size=(2, 2), pos=(-1, -1),
+                           units="norm", fillColor=color)

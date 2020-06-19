@@ -45,11 +45,11 @@ def main(args):
     except ExperimentConfigError as ece:
         print(ece)
 
-    # Instance trials data
-    trials_data = td.TrialsData(exp_config)
-
     # Prepare environment (Psychopy, Sounddevice) 
     env = environment.Environment(exp_config)
+    
+    # Instance trials data
+    trials_data = td.TrialsData(exp_config)
 
     # Prepare trials
     for trial in trials_data:
@@ -58,3 +58,7 @@ def main(args):
     # Run trials
     for trial in trials_data:
         trial.execute(env)
+
+    # Save data
+    exp_config.save()
+    trials_data.save()
