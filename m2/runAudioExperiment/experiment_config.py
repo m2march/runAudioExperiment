@@ -4,19 +4,20 @@ import typing
 import logging
 from fuzzywuzzy import fuzz
 import sounddevice
+import json
 
 
 SOUND_DEVICE_THRESHOLD = 80
 BEST_DEVICE_MATCH_THRESHOLD = 10
 EXPERIMENT_SETTINGS_FILENAME = 'experiment_settings.json'
 
-LOGGER = logging.getLogger()
+LOGGER = logging.getLogger('m2.runAudioExperiment.experment_config')
 
 class ExperimentConfigError(ValueError):
     pass
 
 
-class IncompleteExperimentConfig(ExperimentRunConfig):
+class IncompleteExperimentConfig(ExperimentConfigError):
     
     def __init__(self, missing_keys, filename):
         self.missing_keys = missing_keys
@@ -25,7 +26,7 @@ class IncompleteExperimentConfig(ExperimentRunConfig):
                          'following keys: {}'.format(filename, missing_keys))
 
 
-class InvalidConfigType(ExperimentRunConfig):
+class InvalidConfigType(ExperimentConfigError):
 
     def __init__(self, key, type, filename):
         self.key = key
@@ -36,7 +37,7 @@ class InvalidConfigType(ExperimentRunConfig):
                              key, filename, type))
 
 
-class MissingStimuliFiles(ExperimentRunConfig):
+class MissingStimuliFiles(ExperimentConfigError):
 
     def __init__(self, missing):
         self.missing = missing
@@ -45,7 +46,7 @@ class MissingStimuliFiles(ExperimentRunConfig):
                 self.missing))
 
 
-class IllegalOutputDirectory(ExperimentRunConfig):
+class IllegalOutputDirectory(ExperimentConfigError):
 
     def __init__(self, output_dir):
         self.output_dir = output_dir
@@ -54,7 +55,7 @@ class IllegalOutputDirectory(ExperimentRunConfig):
                 self.output_dir))
 
 
-class NoMatchingDeviceFound(ExperimentRunConfig):
+class NoMatchingDeviceFound(ExperimentConfigError):
 
     def __init__(self, sound_device, ratios):
         self.ratios = ratios
@@ -94,19 +95,18 @@ class ExperimentRunConfig:
     }
     config_keys_set = set(config_keys.keys())
 
-    def __init__(self, filename, stimuli_list, output_dir):
-        if isinstance(filename, str):
-            with open(filename, 'r') as f:
+    def __init__(self, file, stimuli_list, output_dir):
+        if isinstance(file, str):
+            with open(file, 'r') as f:
                 config = yaml.load(f, Loader=yaml.Loader)
-        elif isinstance(filename, file):
-            config = yaml.load(filename, Loader=yaml.Loader)
+        else:
+            config = yaml.load(file, Loader=yaml.Loader)
     
         if not self.config_keys_set.issubset(set(config.keys())):
             raise IncompleteExperimentConfig(
                 self.config_keys_set - set(config.keys()), filename)
 
         for k, t in self.config_keys.items():
-            print(k, t, config[k])
             if not check_type(config[k], t):
                 raise InvalidConfigType(k, t, filename)
 
@@ -116,8 +116,8 @@ class ExperimentRunConfig:
         if isinstance(stimuli_list, str):
             with open(stimuli_list, 'r') as f:
                 self.stimuli_list = [l.strip() for l in f.readlines()]
-        elif isinstance(stimuli_list, file):
-            self.stimuli_list = [l.strip() for l in f.readlines()]
+        else:
+            self.stimuli_list = [l.strip() for l in stimuli_list.readlines()]
 
         files_not_found = [x for x in self.stimuli_list
                            if not os.path.isfile(x)]
@@ -126,7 +126,7 @@ class ExperimentRunConfig:
             raise MissingStimuliFiles(files_not_found)
 
         if os.path.isdir(output_dir):
-            if len(os.path.listdir(output_dir)) > 0:
+            if len(os.listdir(output_dir)) > 0:
                 raise IllegalOutputDirectory(output_dir)
         else:
             LOGGER.info('Creating output dir: {}'.format(output_dir))
@@ -134,7 +134,7 @@ class ExperimentRunConfig:
         self.output_dir = output_dir
 
         self.device_info, self.device_id = self.find_sound_device(
-            config.sound_device)
+            self.sound_device)
 
     def find_sound_device(self, sound_device):
         devices = sounddevice.query_devices()

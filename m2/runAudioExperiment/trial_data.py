@@ -1,19 +1,26 @@
 import os
 import random
+import logging
+import time
+import sounddevice
+import pandas as pd
+from scipy.io import wavfile
 from m2.runAudioExperiment import audio
 
 TRIAL_SETTINGS_FILENAME = 'trial_settings.csv'
 
+logger = logging.getLogger('m2.runAudioExperiment.trials')
+
 class SingleTrialData:
     'Stores information for a trial. Allows preparation and execution.'
 
-    @classmethod
+    @staticmethod
     def recording_filename(stimulus_path):
-        basename = os.path.basename(stimuli_path)
+        basename = os.path.basename(stimulus_path)
         prefix, ext = os.path.splitext(basename) 
         return '{}.rec.{}'.format(prefix, ext)
 
-    @classmethod
+    @staticmethod
     def create_duration(duration_cfg):
         if isinstance(duration_cfg, list) or isinstance(duration_cfg, tuple):
             return random.uniform(duration_cfg[0], duration_cfg[1])
@@ -21,10 +28,10 @@ class SingleTrialData:
             return duration_cfg
 
     def __init__(self, stimulus_path, experiment_config):
-        self.stimulus_path = stimuli_path
+        self.stimulus_path = stimulus_path
         self.recording_path = os.path.join(
             experiment_config.output_dir,
-            this.recording_filename(stimulus_path)
+            self.recording_filename(stimulus_path)
         )
         self.black_duration = self.create_duration(
             experiment_config.black_duration)
@@ -45,37 +52,51 @@ class SingleTrialData:
             * creating the ending separation audio data
             * load stimuli's data and extend it with silence 
         '''
-        self.c1_data = audio.separator_sound_data(this.c1_duration)
-        self.c2_data = audio.separator_sound_data(this.c2_duration)
+        self.c1_data = audio.create_separator_sound_data(self.c1_duration)
+        self.c2_data = audio.create_separator_sound_data(self.c2_duration)
         self.stimulus_w_silence_data = audio.extend_stimulus_w_silence(
             self.stimulus_path, self.silence_duration)
 
     def execute(self, env):
         # Black square 
         init_time = env.clock.getTime()
+        win = env.window
+        logger.debug('Black rect start: {}'.format(time.time()))
         env.black_rect.draw()
-        env.win.flip()
+        win.flip()
         # TODO: Record elapsed time or set durations as multiples
         # of frame durations
-        while env.clock.getTime() - init_time < self.black_duration:
+        while env.clock.getTime() - init_time < self.black_duration / 1000:
             win.flip()
         # Cleaning 1
-        env.c1_duration.draw()
-        env.win.flip()
-        sounddevice.play(self.c1_data.data, samplerate=self.c1_data.sr,
-                         blocking=True)
+        if (self.c1_data is None):
+            logger.debug('C1 skipped: {}'.format(time.time()))
+        else:
+            logger.debug('C1 start: {}'.format(time.time()))
+            env.black_rect.draw()
+            env.c1_rect.draw()
+            win.flip()
+            sounddevice.play(self.c1_data.data, samplerate=self.c1_data.sr,
+                             blocking=True)
         # Stimuli presentation
+        logger.debug('Stimulus start: {}'.format(time.time()))
         env.black_rect.draw()
-        env.win.flip()
+        win.flip()
         sr = self.stimulus_w_silence_data.sr
         rec_data = sounddevice.playrec(self.stimulus_w_silence_data.data,
-                                       samplerate=sr, blocking=True)
+                                       samplerate=sr, blocking=True,
+                                       channels=2
+                                      )
         self.recording = audio.AudioData(rec_data, sr)
         # Cleaning 2
-        env.c2_duration.draw()
-        env.win.flip()
-        sounddevice.play(self.c2_data.data, samplerate=self.c2_data.sr,
-                         blocking=True)
+        if (self.c2_data is None):
+            logger.debug('C2 skipped: {}'.format(time.time()))
+        else:
+            logger.debug('C2 start: {}'.format(time.time()))
+            env.c2_rect.draw()
+            win.flip()
+            sounddevice.play(self.c2_data.data, samplerate=self.c2_data.sr,
+                             blocking=True)
 
     def save(self):
         wavfile.write(self.recording_path, self.recording.sr,
@@ -87,8 +108,8 @@ class TrialsData(list):
 
     def __init__(self, experiment_config):
         super().__init__([
-            SingleTrialData(experiment_config, stimulus_path)
-            for stimuli_path in experiment_config.stimuli_list
+            SingleTrialData(stimulus_path, experiment_config)
+            for stimulus_path in experiment_config.stimuli_list
         ])
 
         self.config = experiment_config
