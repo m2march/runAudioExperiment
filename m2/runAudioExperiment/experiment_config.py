@@ -63,7 +63,7 @@ class NoMatchingDeviceFound(ExperimentConfigError):
             ('No matching sound device found for name: {}\n'
              'Options are: {}').format(
                  sound_device,
-                 [x['name'] for x in ratios]
+                 [x['info']['name'] for x in ratios]
              )
         )
 
@@ -95,7 +95,7 @@ class ExperimentRunConfig:
     }
     config_keys_set = set(config_keys.keys())
 
-    def __init__(self, file, stimuli_list, output_dir):
+    def __init__(self, file, stimuli_list, output_dir, duration_debug=False):
         if isinstance(file, str):
             with open(file, 'r') as f:
                 config = yaml.load(f, Loader=yaml.Loader)
@@ -135,6 +135,8 @@ class ExperimentRunConfig:
 
         self.device_info, self.device_id = self.find_sound_device(
             self.sound_device)
+
+        self.duration_debug = duration_debug
 
     def find_sound_device(self, sound_device):
         devices = sounddevice.query_devices()

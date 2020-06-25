@@ -56,7 +56,8 @@ def extend_stimulus_w_silence(stimulus_path, dur):
     seg = pydub.AudioSegment.from_file(stimulus_path)
     silence = pydub.AudioSegment.silent(dur, seg.frame_rate)
     joined = seg + silence
-    return AudioData(joined.get_array_of_samples(), seg.frame_rate)
+    data = np.array(joined.get_array_of_samples()).reshape((-1, seg.channels))
+    return AudioData(data, seg.frame_rate)
 
 
 class AudioData:
