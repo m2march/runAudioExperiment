@@ -1,0 +1,8 @@
+black_duration: 600         # Duration of black screen (in ms)
+c1_duration: 300            # Duration of first noise screen (in ms)
+c1_color: "#afd444"         # Color of first noise screen
+c2_duration: 000            # Duration of second noise screen (in ms)
+c2_color: "#afd444"         # Color of second noise screen
+randomize: false            # Whether trial order should be randomized
+sound_device: "USB Device"  # String or int identifying the sound deviced used
+silence_duration: 1500      # Duration of silence after stimuli playback
