@@ -17,7 +17,6 @@ class Environment:
         self.c2_rect = self.create_full_rect(experiment_config.c2_color)
         self.black_rect = self.create_full_rect('black')
         sounddevice.default.device = experiment_config.device_id
-        sounddevice.default.samplerate = 48000
         LOGGER.debug('Environment started with sound device: #{} : {}'.format(
             experiment_config.device_id, experiment_config.device_info
         ))
