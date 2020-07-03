@@ -1,38 +1,37 @@
+# Run Audio Experiment
+
 `runAudioExperiment` is an utility to run an experimental setup where input
 times must be recorded with precision synchronized to an audio stimulus. The 
 utility was developed in the context of _"Simple and cheap setup for measuring 
 timed responses to auditory stimuli"_ (Miguel et. al., under review).
 
-The utility works buy executing several trials that consist of reproducing an
+The utility works by executing several trials that consist of reproducing an
 auditory stimulus while simultaneously recording the signal of an input device.
 As an output, the utility saves an audio file for each trial. With the expected
 setup, each audio file has the input signal in one channel and the stimulus
 signal in another. Recording both signals (the input and the stimulus loopback)
 allows extracting the input times relative to the stimulus signal by
-synchronizing the recording with the orignal stimulus (see utility `rec2taps`).
+synchronizing the recording with the orignal stimulus (see utility
+[`rec2taps`](https://github.com/m2march/rec2taps)).
 
 For details on how to create the setup, please see Miguel et. al., under review.
 
-## Trials
 
-Each trial execution consists of the following steps:
+## Installation
 
-* A black screen is shown for a specified duration
-* Screen changes color and white noise with a tone is played
-* A black screen is shown and the stimulus is played while recording the
-  input device. A silence time after the stimulus ended can be configured.
-* Screen changes color and white noise with a tone is played
+* From pypi:
 
-Trials are executed back to back. 
+```
+    pip install m2-runAudioExperiment
+```
 
+* From sources:
 
-# Install
-
-The utility can be installed as a setuptools package:
-
-    $> git clone ... runAudioExperiment
-    $> cd runAudioExperiment
-    $> python setup.py install 
+```
+    git clone https://github.com/m2march/runAudioExperiment.git
+    cd runAudioExperiment
+    python setup.py install
+```
 
 Once installation is done, the script `runAudioExperiment` should be available
 in the command line interface.
@@ -49,6 +48,20 @@ in the command line interface.
 * `output_dir` is a path to a directory where output from the experiment
     will be written. In case the directory does not exists, it will be created.
     If the directory exists, it must be empty.
+
+
+## Trials
+
+Each trial execution consists of the following steps:
+
+* A black screen is shown for a specified duration
+* Screen changes color and white noise with a tone is played
+* A black screen is shown and the stimulus is played while recording the
+  input device. A silence time after the stimulus ended can be configured.
+* Screen changes color and white noise with a tone is played
+
+Trials are executed back to back. 
+
 
 ## Configuration
 
@@ -104,6 +117,9 @@ its workings and results. A test run can be done as so:
 This will run the experiment with three stimuli and create a new folder named
 `output` were recordings and `trial_settings.csv` will be output. 
 
+Before using the utility it may be necessary to configure the `sound_device`
+configuration in `test_config.yaml` to refer to a sound card available in the
+computer. Use `runAudioExperiment -l` to list options.
 
 ### Caveat in the duration of the sections
 

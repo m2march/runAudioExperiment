@@ -8,7 +8,15 @@ HERE = pathlib.Path(__file__).parent
 # The text of the README file
 README = (HERE / "README.md").read_text()
 
-setup(name='runAudioExperiment',
+
+def parse_requirements(filename):
+    """Load requirements from a pip requirements file."""
+    lineiter = (line.strip() for line in open(filename))
+    return [line for line in lineiter if line and not
+            line.startswith("#")]
+
+
+setup(name='m2-runAudioExperiment',
       version='0.9.1',
       description=('Library and utility to run an tapping audio experiment. '
                    'From "Simple and cheap setup for measuring timed '
@@ -26,11 +34,6 @@ setup(name='runAudioExperiment',
               'runAudioExperiment=m2.runAudioExperiment.cli:main'
           ]
       },
-      install_requires=[
-          'pydub',
-          'numpy',
-          'sounddevice',
-          'fuzzywuzzy'
-      ],
+      install_requires=parse_requirements('requirements.txt'),
       license='MIT',
 )
