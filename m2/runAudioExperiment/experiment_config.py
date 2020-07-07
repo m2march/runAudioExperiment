@@ -104,11 +104,11 @@ class ExperimentRunConfig:
     
         if not self.config_keys_set.issubset(set(config.keys())):
             raise IncompleteExperimentConfig(
-                self.config_keys_set - set(config.keys()), filename)
+                self.config_keys_set - set(config.keys()), file)
 
         for k, t in self.config_keys.items():
             if not check_type(config[k], t):
-                raise InvalidConfigType(k, t, filename)
+                raise InvalidConfigType(k, t, file)
 
             self.__dict__[k] = config[k]
 

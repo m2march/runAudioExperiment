@@ -17,7 +17,7 @@ def parse_requirements(filename):
 
 
 setup(name='m2-runAudioExperiment',
-      version='0.9.1',
+      version='0.9.0',
       description=('Library and utility to run an tapping audio experiment. '
                    'From "Simple and cheap setup for measuring timed '
                    'responses to auditory stimuli" (Miguel et. al., under '
