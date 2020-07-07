@@ -1,7 +1,7 @@
-from psychopy import visual
-from psychopy import core 
 import logging
 import sounddevice
+from psychopy import visual
+from psychopy import core 
 
 LOGGER = logging.getLogger('m2.runAudioExperiment.env')
 

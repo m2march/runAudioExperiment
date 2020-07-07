@@ -5,6 +5,7 @@ import logging
 from fuzzywuzzy import fuzz
 import sounddevice
 import json
+import random
 
 
 SOUND_DEVICE_THRESHOLD = 80
@@ -118,6 +119,9 @@ class ExperimentRunConfig:
                 self.stimuli_list = [l.strip() for l in f.readlines()]
         else:
             self.stimuli_list = [l.strip() for l in stimuli_list.readlines()]
+
+        if self.randomize:
+            random.shuffle(self.stimuli_list)
 
         files_not_found = [x for x in self.stimuli_list
                            if not os.path.isfile(x)]

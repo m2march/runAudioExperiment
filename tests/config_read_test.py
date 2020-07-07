@@ -136,7 +136,6 @@ def test_wrong_type(config_fs, sound_mocker):
     os.remove(n_config_fn)
 
 
-# TODO: Test existing stim error
 def test_non_existing_stim_error(config_fs, sound_mocker):
     config_fs.create_file('stim2.txt', contents='\n'.join(list('abdc')))
 
@@ -148,7 +147,6 @@ def test_non_existing_stim_error(config_fs, sound_mocker):
         pass
 
 
-# TODO: Test empty output dir error
 def test_existing_output_dir(config_fs, sound_mocker):
     config_fs.create_dir(OUTDIR_FN)
 
@@ -167,7 +165,6 @@ def test_nonempty_existing_output_dir(config_fs, sound_mocker):
         pass
 
 
-# TODO: Test non existing sound device error
 def test_missing_sound_device(config_fs, mocker):
     mocker.patch('sounddevice.query_devices', 
                  return_value=[{'name': 'Intel'}, {'name': 'Default'}])
@@ -177,3 +174,33 @@ def test_missing_sound_device(config_fs, mocker):
         pytest.fail()
     except cfg.NoMatchingDeviceFound as nmdf:
         pass
+
+
+def test_randomized_trials(config_fs, mocker):
+    shuffle = mocker.patch('random.shuffle')
+
+    with open(TEST_CONFIG_FN, 'r') as f:
+        config = yaml.load(f, Loader=yaml.Loader)
+    
+    config['randomize'] = False
+
+    n_config_fn = '_' + TEST_CONFIG_FN
+    config_fs.create_file(n_config_fn, 
+                          contents=yaml.dump(config, Dumper=yaml.Dumper))
+    
+    config = cfg.ExperimentRunConfig(n_config_fn, STIM_LIST_FN, OUTDIR_FN)
+    shuffle.assert_not_called()
+    assert config.stimuli_list == STIM_LIST
+    
+    with open(TEST_CONFIG_FN, 'r') as f:
+        config = yaml.load(f, Loader=yaml.Loader)
+    
+    config['randomize'] = True
+
+    n2_config_fn = '2_' + TEST_CONFIG_FN
+    config_fs.create_file(n2_config_fn, 
+                          contents=yaml.dump(config, Dumper=yaml.Dumper))
+    
+    config = cfg.ExperimentRunConfig(n2_config_fn, STIM_LIST_FN, OUTDIR_FN)
+    shuffle.assert_called_once()
+    assert set(config.stimuli_list) == set(STIM_LIST)

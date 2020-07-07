@@ -1,12 +1,14 @@
 import pytest
 import os.path
-from m2.runAudioExperiment import cli
 from m2.runAudioExperiment import trial_data
 from adict import adict
+from m2.runAudioExperiment import cli
 
 
-def test_trial_data(fs, mocker):
+@pytest.fixture(scope='function')
+def rae_mock(fs, mocker):
     fs.pause()
+    mocker.patch.dict('sys.modules', psychopy=mocker.MagicMock())
     env = mocker.patch('m2.runAudioExperiment.env.Environment')
     mock_config = mocker.MagicMock()
     mock_config.output_dir = 'out_dir'
@@ -23,7 +25,33 @@ def test_trial_data(fs, mocker):
     trials_data = mocker.spy(trial_data, 'TrialsData')
 
     fs.resume()
+    return (fs, mocker, env, mock_config, config_class, single_trial_mock,
+            single_trial, trials_data)
+
+def test_trial_data(rae_mock):
+    #fs.pause()
+    #mocker.patch.dict('sys.modules', psychopy=mocker.MagicMock())
+    #env = mocker.patch('m2.runAudioExperiment.env.Environment')
+    #mock_config = mocker.MagicMock()
+    #mock_config.output_dir = 'out_dir'
+    #mock_config.stimuli_list = list('abc')
+    #config_class = mocker.patch(
+    #    'm2.runAudioExperiment.experiment_config.ExperimentRunConfig',
+    #    return_value=mock_config
+    #)
+    #single_trial_mock = mocker.MagicMock()
+    #single_trial = mocker.patch(
+    #    'm2.runAudioExperiment.trial_data.SingleTrialData',
+    #    return_value=single_trial_mock
+    #)
+    #trials_data = mocker.spy(trial_data, 'TrialsData')
+
+    #fs.resume()
+    (fs, mocker, env, mock_config, config_class, single_trial_mock,
+            single_trial, trials_data) = rae_mock
     fs.create_dir('out_dir')
+
+    mock_config.duration_debug = False
 
     cli.run_experiment(adict({'trial_config': 'trial_config.yaml',
                               'stimuli_list': 'stim_list.txt',
@@ -43,4 +71,17 @@ def test_trial_data(fs, mocker):
 
     out_file = os.path.join('out_dir', trial_data.TRIAL_SETTINGS_FILENAME)
     with open(out_file) as f:
-        print(f.read())
+        lines = f.readlines()
+        assert len(lines) == 4
+    
+    assert not os.path.exists(
+        os.path.join('out_dir', trial_data.TRIAL_DURATIONS_FILENAME)
+    )
+    mock_config.duration_debug = True
+    cli.run_experiment(adict({'trial_config': 'trial_config.yaml',
+                              'stimuli_list': 'stim_list.txt',
+                              'output_dir': 'out_dir',
+                              'debug_durations': True}))
+    assert os.path.exists(
+        os.path.join('out_dir', trial_data.TRIAL_DURATIONS_FILENAME)
+    )
