@@ -93,8 +93,6 @@ def run_experiment(args):
     import m2.runAudioExperiment.trial_data as td
     import m2.runAudioExperiment.env as environment
     import random
-    import psychopy.core
-    import psychopy.visual
 
     logger.info('Loading config from {}.'.format(args.trial_config))
     # Load and verify experiment config
