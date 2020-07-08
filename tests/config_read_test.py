@@ -42,6 +42,7 @@ def test_config_read(config_fs, sound_mocker):
     assert config.randomize == False
     assert config.sound_device == "USB Device"
     assert config.silence_duration == 1500
+    assert config.c_volume == 1
     assert config.output_dir == OUTDIR_FN
     assert config.stimuli_list == list('abc')
 
@@ -134,6 +135,19 @@ def test_wrong_type(config_fs, sound_mocker):
         assert e.key == 'c1_duration'
         assert e.type == typing.Union[int, typing.Tuple[int, int]]
     os.remove(n_config_fn)
+    
+    # Not float
+    n_config = config.copy()
+    n_config['c_volume'] = 'not float'
+    config_fs.create_file(n_config_fn, 
+                          contents=yaml.dump(n_config, Dumper=yaml.Dumper))
+    try:
+        cfg.ExperimentRunConfig(n_config_fn, STIM_LIST_FN, OUTDIR_FN)
+        pytest.fail()
+    except cfg.InvalidConfigType as e:
+        assert e.key == 'c_volume'
+        assert e.type == typing.Union[float, int]
+    os.remove(n_config_fn)
 
 
 def test_non_existing_stim_error(config_fs, sound_mocker):
@@ -176,8 +190,8 @@ def test_missing_sound_device(config_fs, mocker):
         pass
 
 
-def test_randomized_trials(config_fs, mocker):
-    shuffle = mocker.patch('random.shuffle')
+def test_randomized_trials(config_fs, sound_mocker):
+    shuffle = sound_mocker.patch('random.shuffle')
 
     with open(TEST_CONFIG_FN, 'r') as f:
         config = yaml.load(f, Loader=yaml.Loader)
@@ -204,3 +218,35 @@ def test_randomized_trials(config_fs, mocker):
     config = cfg.ExperimentRunConfig(n2_config_fn, STIM_LIST_FN, OUTDIR_FN)
     shuffle.assert_called_once()
     assert set(config.stimuli_list) == set(STIM_LIST)
+
+
+def test_c_volume_out_of_range(config_fs, sound_mocker):
+    with open(TEST_CONFIG_FN, 'r') as f:
+        config = yaml.load(f, Loader=yaml.Loader)
+    
+    config['c_volume'] = 1.1
+
+    n_config_fn = '_' + TEST_CONFIG_FN
+    config_fs.create_file(n_config_fn, 
+                          contents=yaml.dump(config, Dumper=yaml.Dumper))
+    
+    try:
+        config = cfg.ExperimentRunConfig(n_config_fn, STIM_LIST_FN, OUTDIR_FN)
+        pytest.fail()
+    except cfg.InvalidVolumeValue:
+        pass
+    
+    with open(TEST_CONFIG_FN, 'r') as f:
+        config = yaml.load(f, Loader=yaml.Loader)
+    
+    config['c_volume'] = -0.1
+
+    n2_config_fn = '2_' + TEST_CONFIG_FN
+    config_fs.create_file(n2_config_fn, 
+                          contents=yaml.dump(config, Dumper=yaml.Dumper))
+
+    try:
+        config = cfg.ExperimentRunConfig(n2_config_fn, STIM_LIST_FN, OUTDIR_FN)
+        pytest.fail()
+    except cfg.InvalidVolumeValue:
+        pass

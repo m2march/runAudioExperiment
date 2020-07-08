@@ -6,3 +6,4 @@ c2_color: "#afd444"         # Color of second noise screen
 randomize: false            # Whether trial order should be randomized
 sound_device: "USB Device"  # String or int identifying the sound deviced used
 silence_duration: 1500      # Duration of silence after stimuli playback
+c_volume: 1.0               # Volume of cleaning sound (0 to 1)

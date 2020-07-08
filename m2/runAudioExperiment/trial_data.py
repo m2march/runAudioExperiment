@@ -53,8 +53,10 @@ class SingleTrialData:
             * creating the ending separation audio data
             * load stimuli's data and extend it with silence 
         '''
-        self.c1_data = audio.create_separator_sound_data(self.c1_duration)
-        self.c2_data = audio.create_separator_sound_data(self.c2_duration)
+        self.c1_data = audio.create_separator_sound_data(self.c1_duration,
+                                                         volume=env.c_volume)
+        self.c2_data = audio.create_separator_sound_data(self.c2_duration,
+                                                         volume=env.c_volume)
         self.stimulus_w_silence_data = audio.extend_stimulus_w_silence(
             self.stimulus_path, self.silence_duration)
 
@@ -62,15 +64,22 @@ class SingleTrialData:
         self.execution_times = {}
         # Black square 
         init_time = env.clock.getTime()
+        self.execution_times['init_time'] = init_time
         win = env.window
         logger.debug('Black rect start: {}'.format(time.time()))
         env.black_rect.draw()
         win.flip()
         black_rect_start_time = env.clock.getTime()
+        self.execution_times['black_rect_start_time'] = black_rect_start_time
         # TODO: Record elapsed time or set durations as multiples
         # of frame durations
-        while env.clock.getTime() - init_time < self.black_duration / 1000:
+        while (env.clock.getTime() - init_time) < (self.black_duration / 1000):
             win.flip()
+
+        black_rect_end_time = env.clock.getTime()
+        self.execution_times['black_rect_end_time'] = black_rect_end_time
+        self.execution_times['black_duration'] = (black_rect_end_time -
+                                                  black_rect_start_time)
         # Cleaning 1
         if (self.c1_data is None):
             logger.debug('C1 skipped: {}'.format(time.time()))
@@ -82,9 +91,10 @@ class SingleTrialData:
             c1_start_time = env.clock.getTime()
             sounddevice.play(self.c1_data.data, samplerate=self.c1_data.sr,
                              blocking=True)
-
-        self.execution_times['black_duration'] = (c1_start_time -
-                                                  black_rect_start_time)
+        
+        self.execution_times['c1_start_time'] = c1_start_time
+        #self.execution_times['black_duration'] = (c1_start_time -
+        #                                          black_rect_start_time)
         
         # Stimuli presentation
         sr = self.stimulus_w_silence_data.sr
@@ -92,8 +102,9 @@ class SingleTrialData:
         env.black_rect.draw()
         win.flip()
         stimulus_start_time = env.clock.getTime()
+        self.execution_times['stimulus_start_time'] = stimulus_start_time
         self.execution_times['c1_duration'] = (stimulus_start_time - 
-                                          c1_start_time)
+                                               c1_start_time)
         rec_data = sounddevice.playrec(self.stimulus_w_silence_data.data,
                                        samplerate=sr, blocking=True,
                                        channels=2
@@ -111,6 +122,7 @@ class SingleTrialData:
             sounddevice.play(self.c2_data.data, samplerate=self.c2_data.sr,
                              blocking=True)
         
+        self.execution_times['c2_start_time'] = c2_start_time
         self.execution_times['stimulus_duration'] = (c2_start_time -
                                                      stimulus_start_time)
         c2_end_time = env.clock.getTime()

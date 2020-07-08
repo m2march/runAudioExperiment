@@ -11,6 +11,7 @@ class Environment:
     '''
 
     def __init__(self, experiment_config):
+        self.c_volume = experiment_config.c_volume
         self.clock = core.Clock()
         self.window = visual.Window(fullscr=True, color=(-1, -1, -1))
         self.c1_rect = self.create_full_rect(experiment_config.c1_color)

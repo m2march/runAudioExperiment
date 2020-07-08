@@ -69,6 +69,18 @@ class NoMatchingDeviceFound(ExperimentConfigError):
         )
 
 
+class InvalidVolumeValue(ExperimentConfigError):
+
+    def __init__(self, volume_value):
+        self.volume_value =  volume_value
+        super().__init__(
+            ('Cleaning volume setting is out of range '
+             '(was {}, but must be a float between 0 and 1)').format(
+                 volume_value
+             )
+        )
+
+
 def check_type(instance, type):
     if isinstance(type, typing._GenericAlias):
         if (type.__origin__ == typing.Union):
@@ -92,7 +104,8 @@ class ExperimentRunConfig:
         'c2_color': str,
         'randomize': bool,
         'sound_device': str,
-        'silence_duration': typing.Union[int, typing.Tuple[int, int]]
+        'silence_duration': typing.Union[int, typing.Tuple[int, int]],
+        'c_volume': typing.Union[float, int]
     }
     config_keys_set = set(config_keys.keys())
 
@@ -112,6 +125,9 @@ class ExperimentRunConfig:
                 raise InvalidConfigType(k, t, file)
 
             self.__dict__[k] = config[k]
+
+        if self.c_volume > 1 or self.c_volume < 0:
+            raise InvalidVolumeValue(self.c_volume)
 
 
         if isinstance(stimuli_list, str):

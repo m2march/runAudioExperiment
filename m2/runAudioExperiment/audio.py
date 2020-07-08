@@ -26,14 +26,16 @@ def extend_stimulus(stimulus_path, duration):
 
 def create_separator_sound(dur, f=354.0,
                            noise_sigma=0.1, sr=48000, channels=2,
-                           volume=0.1, fn=None):
+                           volume=1, fn=None):
     '''
     Creates a tone of frequency _f_ with gaussian noise of _dur_ ms.
 
     Returns a (sr * dur, channels) numpy array
     '''
-    fd = (volume * np.sin(2 * np.pi *
-                np.arange(int(sr * dur / 1000.0)) * f/sr)).astype(np.float32)
+    base_volume = 0.1
+    fd = (base_volume * volume * 
+          np.sin(2 * np.pi * np.arange(int(sr * dur / 1000.0)) * f/sr)
+         ).astype(np.float32)
 
     if noise_sigma and noise_sigma != 0.0:
         noise = np.random.normal(0, volume * noise_sigma, fd.size)
@@ -44,11 +46,11 @@ def create_separator_sound(dur, f=354.0,
     return fd.T
 
 
-def create_separator_sound_data(dur):
+def create_separator_sound_data(dur, volume=1):
     if dur == 0:
         return None
 
-    data = create_separator_sound(dur, sr=DEFAULT_SR)
+    data = create_separator_sound(dur, sr=DEFAULT_SR, volume=volume)
     return AudioData(data, DEFAULT_SR)
 
 
