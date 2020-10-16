@@ -127,6 +127,7 @@ class SingleTrialData:
                                                      stimulus_start_time)
         c2_end_time = env.clock.getTime()
         self.execution_times['c2_duration'] = (c2_end_time - c2_start_time)
+        self.execution_times['end_time'] = env.clock.getTime()
 
     def save(self):
         wavfile.write(self.recording_path, self.recording.sr,
