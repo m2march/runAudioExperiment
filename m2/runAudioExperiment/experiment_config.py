@@ -92,6 +92,32 @@ def check_type(instance, type):
     else:
         return isinstance(instance, type)
     return False
+    
+
+def find_sound_device(sound_device):
+    devices = sounddevice.query_devices()
+    ratios = [{'id': i, 'info': info, 
+               'ratio': fuzz.partial_ratio(info['name'], sound_device)}
+              for i, info in enumerate(devices)]
+
+    if all([x['ratio'] < SOUND_DEVICE_THRESHOLD for x in ratios]):
+        raise NoMatchingDeviceFound(sound_device, ratios)
+    
+    sorted_ratios = sorted(ratios, key=lambda d: d['ratio'])
+    best = sorted_ratios[-1]
+
+    #TODO: Assert matching string is distinctive enough
+    # distances = [best['ratio'] - x['ratio'] 
+    #              for x in sorted_ratios[:-1]]
+    # close_distances = [
+    #     x for x in sorted_ratios[:-1]
+    #     if best['ratio'] - x['ratio'] < BEST_DEVICE_MATCH_THRESHOLD
+    # ]
+    # if len(close_distances) > 0:
+    #     raise MatchingNotDistinctEnough(best, close_distances)
+
+    return best['info'], best['id']
+
 
 
 class ExperimentRunConfig:
@@ -153,34 +179,10 @@ class ExperimentRunConfig:
             os.mkdir(output_dir)
         self.output_dir = output_dir
 
-        self.device_info, self.device_id = self.find_sound_device(
-            self.sound_device)
+        self.device_info, self.device_id = find_sound_device(self.sound_device)
 
         self.duration_debug = duration_debug
 
-    def find_sound_device(self, sound_device):
-        devices = sounddevice.query_devices()
-        ratios = [{'id': i, 'info': info, 
-                   'ratio': fuzz.partial_ratio(info['name'], sound_device)}
-                  for i, info in enumerate(devices)]
-
-        if all([x['ratio'] < SOUND_DEVICE_THRESHOLD for x in ratios]):
-            raise NoMatchingDeviceFound(sound_device, ratios)
-        
-        sorted_ratios = sorted(ratios, key=lambda d: d['ratio'])
-        best = sorted_ratios[-1]
-
-        #TODO: Assert matching string is distinctive enough
-        # distances = [best['ratio'] - x['ratio'] 
-        #              for x in sorted_ratios[:-1]]
-        # close_distances = [
-        #     x for x in sorted_ratios[:-1]
-        #     if best['ratio'] - x['ratio'] < BEST_DEVICE_MATCH_THRESHOLD
-        # ]
-        # if len(close_distances) > 0:
-        #     raise MatchingNotDistinctEnough(best, close_distances)
-
-        return best['info'], best['id']
 
     def save(self):
         out_path = os.path.join(self.output_dir, EXPERIMENT_SETTINGS_FILENAME)
