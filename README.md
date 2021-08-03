@@ -2,8 +2,7 @@
 
 `runAudioExperiment` is an utility to run an experimental setup where input
 times must be recorded with precision synchronized to an audio stimulus. The 
-utility was developed in the context of _"Simple and cheap setup for measuring 
-timed responses to auditory stimuli"_ (Miguel et. al., under review).
+utility was developed in the context of _"A simple and cheap setup for timing tapping responses synchronized to auditory stimuli."_ (Miguel, M.A., Riera, P. & Slezak, D.F.  Behav Res (2021). https://doi.org/10.3758/s13428-021-01653-y). .
 
 The utility works by executing several trials that consist of reproducing an
 auditory stimulus while simultaneously recording the signal of an input device.
@@ -14,7 +13,7 @@ allows extracting the input times relative to the stimulus signal by
 synchronizing the recording with the orignal stimulus (see utility
 [`rec2taps`](https://github.com/m2march/rec2taps)).
 
-For details on how to create the setup, please see Miguel et. al., under review.
+For details on how to create the setup, please see [the article](https://doi.org/10.3758/s13428-021-01653-y).
 
 
 ## Installation
